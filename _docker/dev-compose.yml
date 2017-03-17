@@ -1,0 +1,63 @@
+version: '2'
+services:
+    app:
+        build:
+            context: ./app/
+            dockerfile: Dockerfile.dev
+        volumes:
+            - ../:/srv/www/pheign
+        command: /var/local/entrypoint.sh
+
+    data_ssh:
+      container_name: pheign_ssh_data
+      build:
+        context: ./ssh/
+        dockerfile: Dockerfile.dev
+      volumes:
+        - ~/.ssh:/root/ssh_copy
+        - /root/.ssh
+
+    mysql_tunnel:
+        container_name: pheign_mysql_tunnel
+        build:
+          context: ./tunnel/
+          dockerfile: Dockerfile.dev
+        ports:
+            - "3307:3307"
+        command: /var/local/entrypoint.sh
+        volumes_from:
+            - data_ssh
+
+    memcached:
+        container_name: pheign_memcached
+        image: memcached
+        command: memcached -m 1024m
+
+    php:
+        container_name: pheign_php
+        build:
+          context: ./php/
+          dockerfile: Dockerfile-php7.dev
+        volumes_from:
+            - app
+        ports:
+            - "9000:9000"
+        environment:
+            APPLICATION_ENV: development
+            PHP_IDE_CONFIG: "serverName=wkda"
+            XDEBUG_CONFIG: remote_host=${CRH}
+        links:
+          - mysql_tunnel
+          - memcached
+
+    nginx:
+        container_name: pheign_nginx
+        build:
+          context: ./nginx/
+          dockerfile: Dockerfile.dev
+        volumes_from:
+            - php
+        ports:
+            - "80:80"
+        links:
+            - php

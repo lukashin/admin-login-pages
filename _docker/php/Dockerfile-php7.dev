@@ -1,0 +1,77 @@
+FROM php:7.0.14-fpm
+
+ENV APPLICATION_ENV development
+
+ADD ./php.ini /usr/local/etc/php/php.ini
+
+# Minimal apt-get
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libmemcached-dev \
+    libxml2 \
+    curl \
+    git \
+    unzip \
+    software-properties-common \
+    libfreetype6-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libicu-dev
+
+# Install bcmath
+RUN docker-php-ext-install bcmath \
+    mbstring \
+    intl \
+    pdo_mysql \
+    gd
+
+# Configure GD
+RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/
+
+# Install xDebug (if development environment)
+RUN if [ $APPLICATION_ENV = "development" ]; then pecl install xdebug \
+    && docker-php-ext-enable xdebug \
+; fi
+
+# Copy xdebug configration for remote debugging
+COPY ./xdebug.ini $PHP_INI_DIR/conf.d/xdebug.ini
+
+# Install composer
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
+    && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
+    && php -r "unlink('composer-setup.php');"
+
+# Install node js
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash -
+RUN apt-get install -y nodejs
+
+RUN usermod -u 1000 www-data
+
+# install memcached
+
+RUN apt-get update \
+        && buildDeps=" \
+                git \
+                libmemcached-dev \
+                zlib1g-dev \
+        " \
+        && doNotUninstall=" \
+                libmemcached11 \
+                libmemcachedutil2 \
+        " \
+        && apt-get install -y $buildDeps --no-install-recommends \
+        && rm -r /var/lib/apt/lists/* \
+        \
+        && docker-php-source extract \
+        && git clone --branch php7 https://github.com/php-memcached-dev/php-memcached /usr/src/php/ext/memcached/ \
+        && docker-php-ext-install memcached \
+        \
+        && docker-php-source delete \
+        && apt-mark manual $doNotUninstall \
+        && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false $buildDeps
+
+WORKDIR /srv/www/pheign/
+
+CMD ["php-fpm"]
+
+EXPOSE 9001

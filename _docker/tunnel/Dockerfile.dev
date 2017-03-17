@@ -1,0 +1,19 @@
+FROM phusion/baseimage:latest
+
+RUN apt-get update && apt-get install -y cron ssh
+
+RUN touch /var/log/cron.log
+
+ADD crontab /etc/cron.d/ssh-cron
+
+ADD ssh-check.sh /var/local/ssh-check.sh
+
+RUN chmod 0644 /etc/cron.d/ssh-cron
+
+RUN chmod +x /var/local/ssh-check.sh
+
+ADD entrypoint.sh /var/local/entrypoint.sh
+
+RUN chmod +x /var/local/entrypoint.sh
+
+EXPOSE 3307
