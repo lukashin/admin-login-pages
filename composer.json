@@ -48,6 +48,10 @@
         {
             "type": "vcs",
             "url": "git@github.com:pheign/symfony-bundle.git"
+        },
+        {
+            "type": "vcs",
+            "url": "git@github.com:pheign/client.git"
         }
     ],
     "scripts": {
