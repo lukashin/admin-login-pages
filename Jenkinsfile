@@ -23,21 +23,18 @@ pipeline {
         }
         
       }
-    }
-    stage('post') {
-      steps {
-        echo 'wow'
+      post {
+        always {
+          sh 'echo "post is always there"'
+
+        }
+
       }
     }
+    
   }
   environment {
     foo = 'blah'
   }
-  post {
-    always {
-      sh 'echo "post is always there"'
-      
-    }
-    
-  }
+  
 }
