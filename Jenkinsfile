@@ -26,4 +26,9 @@ pipeline {
       }
     }
   }
+  post {
+    always {
+      sh 'echo "post is always there"'
+    }
+  }
 }
