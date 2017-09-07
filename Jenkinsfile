@@ -12,7 +12,6 @@ pipeline {
                 catchError() {
                   cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenSuccess: true, cleanWhenUnstable: true, deleteDirs: true)
                   sh 'echo "booooo!"'
-                  
                 }
                 
               }
@@ -25,10 +24,20 @@ pipeline {
         
       }
     }
+    stage('post') {
+      steps {
+        echo 'wow'
+      }
+    }
+  }
+  environment {
+    foo = 'blah'
   }
   post {
     always {
       sh 'echo "post is always there"'
+      
     }
+    
   }
 }
