@@ -13,7 +13,6 @@ pipeline {
                   cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenSuccess: true, cleanWhenUnstable: true, deleteDirs: true)
                   sh 'echo "booooo!"'
                   
-                  currentBuild.result = 'SUCCESS'
                 }
                 
               }
