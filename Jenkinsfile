@@ -3,14 +3,19 @@ pipeline {
   stages {
     stage('build') {
       steps {
-        timeout(unit: 'MINUTES', time: 20) {
-          catchError() {
-            echo 'Shame!'
-          }
-          
-          timestamps() {
-            ws(dir: 'build_number') {
-              sh 'echo \'some useful stuff\''
+        timestamps() {
+          timeout(unit: 'MINUTES', time: 20) {
+            ws(dir: 'some_workspace') {
+              retry(count: 3) {
+                sh 'echo "hi there!"'
+                error 'panic!'
+                catchError() {
+                  cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenSuccess: true, cleanWhenUnstable: true, deleteDirs: true)
+                  sh 'echo "booooo!"'
+                }
+                
+              }
+              
             }
             
           }
